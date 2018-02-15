@@ -1,42 +1,63 @@
 #!/bin/sh
 
-# DNSHOST='contoso.com'
-# ADMINUSER='bob@contoso.com'
+if [ -z "$1" ]; then
+    echo "INFO: Missing DNS HOST NAME";
+    echo "Usage Hint: ./join-domain.sh my-domain.onmicrosoft.com admin admin-password vm-host-name"
+    exit 1;
+fi
 
-DNSHOST='intelADhackathonoutlook.onmicrosoft.com'
-ADMINUSER='clmb@intelADhackathonoutlook.onmicrosoft.com'
+if [ -z "$2" ]; then
+    echo "INFO: Missing ADMIN USER NAME";
+    echo "Usage Hint: ./join-domain.sh my-domain.onmicrosoft.com admin admin-password vm-host-name"
+    exit 1;
+fi
+
+if [ -z "$3" ]; then
+    echo "INFO: Missing ADMIN USER PASSWORD";
+    echo "Usage Hint: ./join-domain.sh my-domain.onmicrosoft.com admin admin-password vm-host-name"
+    exit 1;
+fi
+
+if [ -z "$4" ]; then
+    echo "INFO: Missing VM HOST NAME";
+    echo "Usage Hint: ./join-domain.sh my-domain.onmicrosoft.com admin admin-password vm-host-name"
+    exit 1;
+fi
+
+DNSHOST=$1
+HOST_ALL_CAPS=$(echo $DNSHOST | tr '[:lower:]' '[:upper:]')
+ADMINUSER=$2
+ADMINUSERPW=$3
+VMHOSTNAME=$4
+
+sed -i -e "s/{DOMAIN-NAME-WILL-GO-HERE}/$DNSHOST/g" sssd.sample.conf krb5.sample.conf
+sed -i -e "s/{DOMAIN-NAME-IN-ALL-CAPS-WILL-GO-HERE}/$HOST_ALL_CAPS/g" sssd.sample.conf krb5.sample.conf
+sed -i -e "s/{HOST-VM-NAME-WILL-GO-HERE}/$VMHOSTNAME/g" sssd.sample.conf krb5.sample.conf
+
+./install-deps.sh
 
 ## 1. CONFIGURE HOSTS
-echo "127.0.0.1  $(hostname).$DNSHOST $(hostname)" >> /etc/hosts
+echo "\n127.0.0.1 $(hostname).$DNSHOST $(hostname)" >> /etc/hosts
 
-## 2. Install required packages
-## try passing -q and -y to make a quiet unattended install
-# TODO: add sudo to commands
-apt-get update --fix-missing \
-&& apt-get -q -y install samba sssd sssd-tools libnss-sss libpam-sss ntp ntpdate realmd adcli
-##Unattended install of krb5-user on Ubuntu 16.04
-DEBIAN_FRONTEND=noninteractive apt-get install -y krb5-user
-
-## 3. CONFIGURE NTP
-echo "server $DNSHOST" >> /etc/ntp.conf
+## 2. CONFIGURE NTP
+echo "\nserver $DNSHOST" >> /etc/ntp.conf
 systemctl stop ntp
 ntpdate $DNSHOST
 systemctl start ntp
 
-## 4. Join the Linux virtual machine to the managed domain
-## WRITE /etc/krb5.conf
-cp ./krb5.conf /etc/krb5.conf
-realm discover $DNSHOST
+## 3. CONFIGURE Kerberos
+## PLEASE EDIT krb5.sample.conf FIRST ##
+cp ./krb5.sample.conf /etc/krb5.conf
+realm discover $HOST_UPPER_CASE
 ## KINIT with Service Principal - figure out how to pass password
-echo password | kinit $ADMINUSER
+echo -n "$ADMINUSERPW" | kinit "$ADMINUSER"
 ## Join domain
-realm join --verbose $DNSHOST -U '$ADMINUSER' --install=/
+echo -n "$ADMINUSERPW" | realm join --verbose $HOST_ALL_CAPS -U "$ADMINUSER@$HOST_ALL_CAPS" --install=/
 
-## 5. Configure SSSD
-echo "use_fully_qualified_names = True" >> /etc/sssd/sssd.conf
-service sssd restart
+## 4. Configure SSSD
+apt-get install -y sssd sssd-tools samba
+sudo systemctl enable sssd
+sudo systemctl start sssd
 
-## 6. Configure automatic home directory creation
-echo "session required pam_mkhomedir.so skel=/etc/skel/ umask=0077" >> /etc/pam.d/common-session
-
-bash
+## 5. Configure automatic home directory creation
+echo "\nsession required pam_mkhomedir.so skel=/etc/skel/ umask=0077" >> /etc/pam.d/common-session
