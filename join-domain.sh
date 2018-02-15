@@ -54,10 +54,16 @@ echo -n "$ADMINUSERPW" | kinit "$ADMINUSER"
 ## Join domain
 echo -n "$ADMINUSERPW" | realm join --verbose $HOST_ALL_CAPS -U "$ADMINUSER@$HOST_ALL_CAPS" --install=/
 
-## 4. Configure SSSD
-apt-get install -y sssd sssd-tools samba
-sudo systemctl enable sssd
-sudo systemctl start sssd
+## 4. Setup SSSD CONF
+## PLEASE EDIT sssd.sample.conf FIRST ##
+cp ./sssd.sample.conf /etc/sssd/sssd.conf
+chown root:root /etc/sssd/sssd.conf
+chmod 600 /etc/sssd/sssd.conf
 
-## 5. Configure automatic home directory creation
+## 5. Configure SSSD
+apt-get install -y sssd sssd-tools samba
+systemctl enable sssd
+systemctl start sssd
+
+## 6. Configure automatic home directory creation
 echo "\nsession required pam_mkhomedir.so skel=/etc/skel/ umask=0077" >> /etc/pam.d/common-session

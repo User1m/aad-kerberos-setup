@@ -1,4 +1,4 @@
 FROM ubuntu:16.04
-COPY ./join-domain.sh /scripts/join-domain.sh
-WORKDIR /workdir
-ENTRYPOINT [ "/scripts/join-domain.sh" ]
+COPY ./ /scripts
+WORKDIR /scripts
+ENTRYPOINT [ "/scripts/join-domain.sh", "my-domain.onmicrosoft.com","admin", "admin-password", "vm-host-name" ]

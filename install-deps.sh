@@ -2,12 +2,6 @@
 
 apt remove --purge --autoremove -y krb5-user samba sssd sssd-tools libnss-sss libpam-sss ntp ntpdate realmd adcli
 
-## 0. Setup SSSD CONF
-## PLEASE EDIT sssd.sample.conf FIRST ##
-cp ./sssd.sample.conf /etc/sssd/sssd.conf
-chown root:root /etc/sssd/sssd.conf
-chmod 600 /etc/sssd/sssd.conf
-
 ## try passing -q and -y to make a quiet unattended install
 apt-get -y update --fix-missing \
 && apt-get install -y ntp ntpdate \
