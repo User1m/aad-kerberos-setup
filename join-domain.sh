@@ -2,25 +2,25 @@
 
 if [ -z "$1" ]; then
     echo "INFO: Missing DNS HOST NAME";
-    echo "Usage Hint: ./join-domain.sh my-domain.onmicrosoft.com admin admin-password vm-host-name"
+    echo "Usage Hint: sudo ./join-domain.sh my-domain.onmicrosoft.com admin admin-password vm-host-name"
     exit 1;
 fi
 
 if [ -z "$2" ]; then
     echo "INFO: Missing ADMIN USER NAME";
-    echo "Usage Hint: ./join-domain.sh my-domain.onmicrosoft.com admin admin-password vm-host-name"
+    echo "Usage Hint: sudo ./join-domain.sh my-domain.onmicrosoft.com admin admin-password vm-host-name"
     exit 1;
 fi
 
 if [ -z "$3" ]; then
     echo "INFO: Missing ADMIN USER PASSWORD";
-    echo "Usage Hint: ./join-domain.sh my-domain.onmicrosoft.com admin admin-password vm-host-name"
+    echo "Usage Hint: sudo ./join-domain.sh my-domain.onmicrosoft.com admin admin-password vm-host-name"
     exit 1;
 fi
 
 if [ -z "$4" ]; then
     echo "INFO: Missing VM HOST NAME";
-    echo "Usage Hint: ./join-domain.sh my-domain.onmicrosoft.com admin admin-password vm-host-name"
+    echo "Usage Hint: sudo ./join-domain.sh my-domain.onmicrosoft.com admin admin-password vm-host-name"
     exit 1;
 fi
 
