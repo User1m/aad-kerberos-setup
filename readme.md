@@ -10,7 +10,7 @@
 
 ## How to Use
 
-* Run:
+Run:
 
 ```
 > sudo ./join-domain.sh my-domain.onmicrosoft.com admin admin-password vm-host-name
